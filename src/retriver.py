@@ -10,8 +10,10 @@ from langchain_core.documents import Document
 
 load_dotenv() 
 
-DATA_DIR = "data"
-DB_DIR = "chroma_store"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
+DB_DIR = os.path.join(BASE_DIR, "chroma_store")
 
 
 # 1. LOAD ---- read each transcript, throw away the VTT timestamps
