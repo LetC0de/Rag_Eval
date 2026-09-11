@@ -11,7 +11,7 @@ from src.retriever import build_retriever
 load_dotenv()
 
 GOLDEN_PATH = "goldens/retriever_goldens.json"
-JUDGE_MODEL = "gpt-4.1-mini"  
+JUDGE_MODEL = "nvidia/nemotron-3-super-120b-a12b"  
 THRESHOLD = 0.7
 
 
