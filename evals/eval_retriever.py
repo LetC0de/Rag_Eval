@@ -1,17 +1,24 @@
 import json
+import os
 
 from dotenv import load_dotenv
 
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import ContextualRecallMetric, ContextualPrecisionMetric
+from deepeval.models.llms.openai_model import OpenAIModel
 
 from src.retriever import build_retriever
 
 load_dotenv()
 
 GOLDEN_PATH = "goldens/retriever_goldens.json"
-JUDGE_MODEL = "nvidia/nemotron-3-super-120b-a12b"  
+JUDGE_MODEL_NAME = "nvidia/nemotron-3-super-120b-a12b"
+JUDGE_MODEL = OpenAIModel(
+    model=JUDGE_MODEL_NAME,
+    api_key=os.getenv("NVIDIA_API_KEY"),
+    base_url="https://integrate.api.nvidia.com/v1",
+)
 THRESHOLD = 0.7
 
 
@@ -57,7 +64,7 @@ evaluate(
         "chunk_size": 1000,
         "chunk_overlap": 150,
         "top_k": 5,
-        "judge_model": JUDGE_MODEL,
+        "judge_model": JUDGE_MODEL_NAME,
         "golden_set": GOLDEN_PATH,
     },
 )
