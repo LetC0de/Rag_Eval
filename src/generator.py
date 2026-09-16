@@ -24,7 +24,7 @@ llm = ChatOpenAI(
     api_key=os.getenv("API_KEY"),
     base_url="https://openrouter.ai/api/v1",
     temperature=0,
-    
+    model_kwargs={"extra_body": {"reasoning": {"enabled": False}}},
 )
 
 # faithfulness-first prompt: ground every claim in the context, abstain if unsure
