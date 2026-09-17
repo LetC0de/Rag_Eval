@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"
+MODEL_NAME = "nvidia/nemotron-3-super-120b-a12b:free"
 llm = ChatOpenAI(
     model=MODEL_NAME,
     api_key=os.getenv("API_KEY"),
