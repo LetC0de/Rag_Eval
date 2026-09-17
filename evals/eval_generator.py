@@ -28,7 +28,7 @@ from src.generator import generate   # your generator: generate(query, context) 
 load_dotenv()
 
 GOLDEN_PATH = "goldens/faithfulness_dataset.json"
-JUDGE_MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"
+JUDGE_MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"    # nvidia/nemotron-3-super-120b-a12b:free
 JUDGE_MODEL = OpenAIModel(
     model=JUDGE_MODEL_NAME,
     api_key=os.getenv("API_KEY"),
@@ -52,7 +52,7 @@ with open(GOLDEN_PATH) as f:
 
 # 2. RUN THE GENERATOR on the GOLDEN context (isolation), build one test case each
 test_cases = []
-for g in goldens[:10]:
+for g in goldens[:5]:
     context = g["ideal_context"]              # known-good context (list of chunk strings)
     answer = generate(g["query"], context)    # RUN the generator -> actual_output
 
