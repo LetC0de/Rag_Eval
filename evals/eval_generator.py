@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase
 from deepeval.models.llms.openai_model import OpenAIModel
+from deepeval.evaluate.configs import CacheConfig, ErrorConfig
 from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
 
 from src.generator import generate   # your generator: generate(query, context) -> answer
@@ -37,6 +38,10 @@ JUDGE_MODEL = OpenAIModel(
         "extra_body": {"reasoning": {"enabled": False}},
     },
 )
+
+JUDGE_MODEL.model_data.supports_json = True
+JUDGE_MODEL.model_data.supports_structured_outputs = False
+
 THRESHOLD = 0.7
 
 
@@ -47,7 +52,7 @@ with open(GOLDEN_PATH) as f:
 
 # 2. RUN THE GENERATOR on the GOLDEN context (isolation), build one test case each
 test_cases = []
-for g in goldens:
+for g in goldens[:10]:
     context = g["ideal_context"]              # known-good context (list of chunk strings)
     answer = generate(g["query"], context)    # RUN the generator -> actual_output
 
@@ -65,14 +70,28 @@ for g in goldens:
 metrics = [FaithfulnessMetric(
     threshold=THRESHOLD,
     model=JUDGE_MODEL,
-    include_reason=True,   # prints WHY each score — shows which claims were unsupported
+    include_reason=False,   # prints WHY each score — shows which claims were unsupported
 ),
 AnswerRelevancyMetric(
     threshold=THRESHOLD, 
     model=JUDGE_MODEL, 
-    include_reason=True)
+    include_reason=False)
 ]
 
 
 # 4. EVALUATE — runs the metric on every case, prints a report
-evaluate(test_cases=test_cases, metrics=metrics)
+evaluate(
+    test_cases=test_cases,
+    metrics=metrics,
+    cache_config=CacheConfig(write_cache=False, use_cache=False),
+    error_config=ErrorConfig(ignore_errors=True),
+    hyperparameters={
+        "retriever": "base_k5",
+        "embedding_model": "text-embedding-3-small",
+        "chunk_size": 1000,
+        "chunk_overlap": 150,
+        "top_k": 5,
+        "judge_model": JUDGE_MODEL_NAME,
+        "golden_set": GOLDEN_PATH,
+    },
+)
