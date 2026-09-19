@@ -34,7 +34,7 @@ JUDGE_MODEL.model_data.supports_structured_outputs = False
 THRESHOLD = 0.7
 
 
-# 1. LOAD queries (we only need the queries — context comes from the pipeline now)
+
 with open(GOLDEN_PATH) as f:
     goldens = json.load(f)
 
