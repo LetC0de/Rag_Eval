@@ -16,7 +16,7 @@ from src.rag_pipeline import RagPipeline
 
 load_dotenv()
 
-GOLDEN_PATH = "goldens/faithfulness_dataset.json"   # reuse the queries
+GOLDEN_PATH = "goldens/faithfulness_dataset.json"   
 JUDGE_MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"    # nvidia/nemotron-3-super-120b-a12b:free
 JUDGE_MODEL = OpenAIModel(
     model=JUDGE_MODEL_NAME,
