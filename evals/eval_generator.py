@@ -70,7 +70,7 @@ for g in goldens[:10]:
 metrics = [FaithfulnessMetric(
     threshold=THRESHOLD,
     model=JUDGE_MODEL,
-    include_reason=False,   # prints WHY each score — shows which claims were unsupported
+    include_reason=False, 
 ),
 AnswerRelevancyMetric(
     threshold=THRESHOLD, 
@@ -87,7 +87,7 @@ evaluate(
     error_config=ErrorConfig(ignore_errors=True),
     hyperparameters={
         "retriever": "base_k5",
-        "embedding_model": "text-embedding-3-small",
+        "embedding_model": "mistral-embed",
         "chunk_size": 1000,
         "chunk_overlap": 150,
         "top_k": 5,
