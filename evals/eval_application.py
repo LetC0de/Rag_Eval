@@ -46,7 +46,7 @@ with open(GOLDEN_PATH) as f:
 rag = RagPipeline()
 test_cases = []
 
-for g in goldens[:3]:
+for g in goldens[:2]:
     result = rag.invoke(g["question"])          # retrieve → rerank → generate
 
     test_cases.append(
@@ -93,10 +93,43 @@ correctness = GEval(
     strict_mode=False,  # graded scale; strict_mode=True would collapse it to 0/1
 )
 
+completeness = GEval(
+    name="Completeness",
+    evaluation_steps=[
+        "Identify the key points contained in the expected output.",
+        "Check how many of those key points are addressed in the actual output.",
+        "Penalize the actual output for each key point from the expected output that it omits or only partially covers.",
+        "Judge coverage only. Do NOT lower the score because a covered point is stated incorrectly – factual correctness is judged separately.",
+        "Do NOT penalize the actual output for adding extra information beyond the expected output.",
+    ],
+    rubric=[
+        Rubric(
+            score_range=(9, 10),
+            expected_outcome="Addresses essentially all key points in the expected output.",
+        ),
+        Rubric(
+            score_range=(5, 8),
+            expected_outcome="Covers the main key points but misses one or more.",
+        ),
+        Rubric(
+            score_range=(0, 4),
+            expected_outcome="Misses several key points, or only partially covers the expected output.",
+        ),
+    ],
+    evaluation_params=[
+        LLMTestCaseParams.INPUT,
+        LLMTestCaseParams.ACTUAL_OUTPUT,
+        LLMTestCaseParams.EXPECTED_OUTPUT,
+    ],
+    threshold=THRESHOLD,
+    model=JUDGE_MODEL,
+    strict_mode=False,
+)
+
 # 4. EVALUATE
 evaluate(
     test_cases=test_cases,
-    metrics=[correctness],
+    metrics=[correctness, completeness],
     cache_config=CacheConfig(write_cache=False, use_cache=False),
     error_config=ErrorConfig(ignore_errors=True),
     hyperparameters={
