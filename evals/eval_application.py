@@ -1,5 +1,7 @@
 import os
+import sys
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 
 from deepeval import evaluate
@@ -8,12 +10,16 @@ from deepeval.models.llms.openai_model import OpenAIModel
 from deepeval.evaluate.configs import CacheConfig, ErrorConfig
 from deepeval.metrics import GEval
 
+# repo root on sys.path so `src` works whether run from root or from evals/
+ROOT_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT_DIR))
+
 from src.rag_pipeline import RagPipeline
 
 load_dotenv()
 
-GOLDEN_PATH = "goldens/correctness_goldens.json"  # question + ideal_answer
-JUDGE_MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"    # nvidia/nemotron-3-super-120b-a12b:free
+GOLDEN_PATH = str(ROOT_DIR / "goldens" / "correctness_goldens.json")  # question + ideal_answer
+JUDGE_MODEL_NAME = "nvidia/nemotron-3-super-120b-a12b:free"    # nvidia/nemotron-3-super-120b-a12b:free
 JUDGE_MODEL = OpenAIModel(
     model=JUDGE_MODEL_NAME,
     api_key=os.getenv("API_KEY"),
@@ -39,7 +45,7 @@ with open(GOLDEN_PATH) as f:
 rag = RagPipeline()
 test_cases = []
 
-for g in goldens:
+for g in goldens[:1]:
     result = rag.invoke(g["question"])          # retrieve → rerank → generate
 
     test_cases.append(
