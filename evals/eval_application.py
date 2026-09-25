@@ -71,4 +71,18 @@ correctness = GEval(
 )
 
 # 4. EVALUATE
-evaluate(test_cases=test_cases, metrics=[correctness])
+evaluate(
+    test_cases=test_cases,
+    metrics=[correctness],
+    cache_config=CacheConfig(write_cache=False, use_cache=False),
+    error_config=ErrorConfig(ignore_errors=True),
+    hyperparameters={
+        "retriever": "rerank_fetch10_k5",
+        "embedding_model": "mistral-embed",
+        "chunk_size": 1000,
+        "chunk_overlap": 150,
+        "top_k": 5,
+        "judge_model": JUDGE_MODEL_NAME,
+        "golden_set": GOLDEN_PATH,
+    },
+)
