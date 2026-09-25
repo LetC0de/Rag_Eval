@@ -58,7 +58,7 @@ for g in goldens[:1]:
     )
 
 
-# 3. THE CORRECTNESS METRIC (graded G-Eval – partial credit, not pass/fail)
+# 3A. THE CORRECTNESS METRIC (graded G-Eval – partial credit, not pass/fail)
 correctness = GEval(
     name="Correctness",
     evaluation_steps=[
@@ -93,6 +93,7 @@ correctness = GEval(
     strict_mode=False,  # graded scale; strict_mode=True would collapse it to 0/1
 )
 
+# 3B. THE COMPLETENESS METRIC (graded G-Eval – partial credit, not pass/fail)
 completeness = GEval(
     name="Completeness",
     evaluation_steps=[
@@ -126,10 +127,44 @@ completeness = GEval(
     strict_mode=False,
 )
 
+# 3C. STYLE – reference-free, judges TONE only (note: no EXPECTED_OUTPUT)
+style = GEval(
+    name="Style",
+    evaluation_steps=[
+        "Judge only the teaching style and tone of the actual output, not whether it is factually correct or complete.",
+        "Reward an intuitive, explanatory tone: plain language, the idea explained before any formula or jargon, with technical terms briefly unpacked when used.",
+        "Reward a direct, conversational register that addresses the student, as a CampusX lecture would, rather than a dry, formal, or textbook tone.",
+        "Reward the use of a concrete example, analogy, or 'why it matters' framing where it helps understanding.",
+        "Penalize answers that are stiff, bureaucratic, list-only with no explanation, or that use unexplained jargon.",
+        "Do NOT reward or penalize based on correctness, completeness, or length – only on style and tone.",
+    ],
+    rubric=[
+        Rubric(
+            score_range=(9, 10),
+            expected_outcome="Clearly in a CampusX teaching voice: intuitive, conversational, explains before it formalizes.",
+        ),
+        Rubric(
+            score_range=(5, 8),
+            expected_outcome="Reasonably clear but somewhat flat, formal, or textbook-like in places.",
+        ),
+        Rubric(
+            score_range=(0, 4),
+            expected_outcome="Dry, stiff, jargon-heavy, or robotic; does not read like a teaching explanation.",
+        ),
+    ],
+    evaluation_params=[
+        LLMTestCaseParams.INPUT,
+        LLMTestCaseParams.ACTUAL_OUTPUT,
+    ],
+    threshold=THRESHOLD,
+    model=JUDGE_MODEL,
+    strict_mode=False,
+)
+
 # 4. EVALUATE
 evaluate(
     test_cases=test_cases,
-    metrics=[correctness, completeness],
+    metrics=[correctness, completeness, style],
     cache_config=CacheConfig(write_cache=False, use_cache=False),
     error_config=ErrorConfig(ignore_errors=True),
     hyperparameters={
