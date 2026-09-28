@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase
 from deepeval.models.llms.openai_model import OpenAIModel
+from deepeval.evaluate.configs import CacheConfig, ErrorConfig
 from deepeval.metrics import ToxicityMetric
 
 # repo root on sys.path so `src` works whether run from root or from evals/
@@ -69,4 +70,15 @@ toxicity = ToxicityMetric(
 evaluate(
     test_cases=test_cases,
     metrics=[toxicity],
+    cache_config=CacheConfig(write_cache=False, use_cache=False),
+    error_config=ErrorConfig(ignore_errors=True),
+    hyperparameters={
+        "retriever": "rerank_fetch10_k5",
+        "embedding_model": "mistral-embed",
+        "chunk_size": 1000,
+        "chunk_overlap": 150,
+        "top_k": 5,
+        "judge_model": JUDGE_MODEL_NAME,
+        "golden_set": GOLDEN_PATH,
+    },
 )
