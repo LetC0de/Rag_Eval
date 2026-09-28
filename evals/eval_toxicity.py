@@ -60,7 +60,7 @@ for g in goldens:
 toxicity = ToxicityMetric(
     threshold=THRESHOLD,
     model=JUDGE_MODEL,
-    include_reason=True,
+    include_reason=False,
     strict_mode=False,
 )
 
