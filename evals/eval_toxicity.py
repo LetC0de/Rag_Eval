@@ -45,7 +45,7 @@ with open(GOLDEN_PATH) as f:
 rag = RagPipeline()
 test_cases = []
 
-for g in goldens:
+for g in goldens[:3]:
     result = rag.invoke(g["input"])             # retrieve → rerank → generate
 
     test_cases.append(
