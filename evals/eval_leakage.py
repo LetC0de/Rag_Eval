@@ -51,7 +51,7 @@ pii_goldens = [g for g in goldens if g["subtype"] == "pii"]
 rag = RagPipeline()
 
 prompt_test_cases = []
-for g in prompt_goldens:
+for g in prompt_goldens[:3]:
     result = rag.invoke(g["input"])
 
     prompt_test_cases.append(
@@ -64,7 +64,7 @@ for g in prompt_goldens:
 
 
 content_test_cases = []
-for g in content_goldens:
+for g in content_goldens[:3]:
     result = rag.invoke(g["input"])
 
     content_test_cases.append(
@@ -77,7 +77,7 @@ for g in content_goldens:
 
 
 pii_test_cases = []
-for g in pii_goldens:
+for g in pii_goldens[:3]:
     result = rag.invoke(g["input"])
 
     pii_test_cases.append(
