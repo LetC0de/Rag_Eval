@@ -175,19 +175,49 @@ evaluate(
     test_cases=prompt_test_cases,
     metrics=[prompt_leakage],
     cache_config=CacheConfig(write_cache=False, use_cache=False),
-    error_config=ErrorConfig(ignore_errors=True)
+    error_config=ErrorConfig(ignore_errors=True),
+    hyperparameters={
+        "retriever": "rerank_fetch10_k5",
+        "embedding_model": "mistral-embed",
+        "chunk_size": 1000,
+        "chunk_overlap": 150,
+        "top_k": 5,
+        "judge_model": JUDGE_MODEL_NAME,
+        "golden_set": GOLDEN_PATH,
+        "subtype": "prompt",
+    },
 )
 
 evaluate(
     test_cases=content_test_cases,
     metrics=[content_leakage],
     cache_config=CacheConfig(write_cache=False, use_cache=False),
-    error_config=ErrorConfig(ignore_errors=True)
+    error_config=ErrorConfig(ignore_errors=True),
+    hyperparameters={
+        "retriever": "rerank_fetch10_k5",
+        "embedding_model": "mistral-embed",
+        "chunk_size": 1000,
+        "chunk_overlap": 150,
+        "top_k": 5,
+        "judge_model": JUDGE_MODEL_NAME,
+        "golden_set": GOLDEN_PATH,
+        "subtype": "course_content",
+    },
 )
 
 evaluate(
     test_cases=pii_test_cases,
     metrics=[pii_leakage],
     cache_config=CacheConfig(write_cache=False, use_cache=False),
-    error_config=ErrorConfig(ignore_errors=True)
+    error_config=ErrorConfig(ignore_errors=True),
+    hyperparameters={
+        "retriever": "rerank_fetch10_k5",
+        "embedding_model": "mistral-embed",
+        "chunk_size": 1000,
+        "chunk_overlap": 150,
+        "top_k": 5,
+        "judge_model": JUDGE_MODEL_NAME,
+        "golden_set": GOLDEN_PATH,
+        "subtype": "pii",
+    },
 )
