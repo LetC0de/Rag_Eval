@@ -27,7 +27,7 @@ llm = ChatOpenAI(
     model_kwargs={"extra_body": {"reasoning": {"enabled": False}}},
 )
 
-# faithfulness-first prompt: ground every claim in the context, abstain if unsure
+
 prompt = ChatPromptTemplate.from_template(
     """
 You are a helpful teaching assistant for a course on LLM evaluations. Your role is to help students understand the LLM evaluations course using ONLY the information in the context provided below.
