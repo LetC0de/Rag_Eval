@@ -52,8 +52,8 @@ QUESTIONS = [
 REPEATS = 5           # measured runs PER question -> total samples = len(QUESTIONS) * REPEATS
 WARMUP_RUNS = 2       # throwaway calls before measuring (cold start)
 
-MEASURE_TTFT = True   # stream generation and clock time-to-first-token (perceived latency)
-STAGE_LEVEL = True    # split retrieval vs generation (ignored/implied when MEASURE_TTFT is on)
+MEASURE_TTFT = False  # TTFT needs streaming; the free model stalls mid-stream, so measure stages instead
+STAGE_LEVEL = True    # split retrieval vs generation
 
 # SLOs / budgets. A latency number is meaningless without a target to pass/fail against.
 SLO_P95_MS = 3000        # end-to-end: full answer p95 under 3s
