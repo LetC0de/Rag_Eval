@@ -25,8 +25,14 @@ Key ideas encoded below:
 # 1. IMPORTS & ENV
 # ============================================================
 import math
+import sys
 import time
+from pathlib import Path
 from dotenv import load_dotenv
+
+# repo root on sys.path so `src` works whether run from root or from evals/
+ROOT_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT_DIR))
 
 from src.rag_pipeline import RagPipeline
 from src.generator import generate, generate_stream   # generate_stream: the streaming twin
