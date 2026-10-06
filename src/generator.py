@@ -24,6 +24,8 @@ llm = ChatOpenAI(
     api_key=os.getenv("API_KEY"),
     base_url="https://openrouter.ai/api/v1",
     temperature=0,
+    timeout=120,        # free models can be slow; don't kill the call early
+    max_retries=2,      # auto-retry transient failures/timeout instead of crashing
     model_kwargs={"extra_body": {"reasoning": {"enabled": False}}},
 )
 
