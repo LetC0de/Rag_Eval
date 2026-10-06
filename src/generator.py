@@ -113,6 +113,29 @@ def generate(query: str, context: list[str]) -> str:
     return chain.invoke({"question": query, "context": context_text})
 
 
+
+def generate_stream(query: str, context: list[str]):
+    """
+    Stream the grounded answer chunk-by-chunk as it is generated.
+
+    Same prompt / model / chain as generate() — we just call .stream() instead
+    of .invoke(). Because the chain ends in StrOutputParser(), each yielded
+    chunk is already a plain str, so no .content unpacking is needed.
+
+    Yields:
+        str: successive pieces of the answer. Empty chunks are skipped so the
+             caller can clock time-to-first-token on the first *visible* token.
+    """
+    context_text = "\n\n".join(context)
+    for chunk in chain.stream({"question": query, "context": context_text}):
+        if chunk:                      # skip empty leading chunks
+            yield chunk
+
+
+
+
+
+
 # quick manual test: python src/generator.py
 if __name__ == "__main__":
     ctx = [
@@ -120,3 +143,7 @@ if __name__ == "__main__":
         "after deployment. It works without an answer key, unlike offline eval."
     ]
     print(generate("what is online eval?", ctx))
+    
+    print("\n--- Streaming ---")
+    for chunk in generate_stream("what is online eval?", ctx):
+        print(chunk, end="", flush=True)
