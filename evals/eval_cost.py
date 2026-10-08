@@ -26,12 +26,18 @@ AIMessage. Same prompt, same model, real retrieved context.
 # ============================================================
 # 1. IMPORTS & ENV
 # ============================================================
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
+
+# repo root on sys.path so `src` works whether run from root or from evals/
+ROOT_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT_DIR))
+
+load_dotenv()   # load .env BEFORE importing src (generator reads API_KEY at import time)
 
 from src.rag_pipeline import RagPipeline
 from src.generator import prompt, llm      # reuse the exact prompt + model
-
-load_dotenv()
 
 # stop before StrOutputParser() so the AIMessage (with usage_metadata) survives
 measured_chain = prompt | llm
@@ -57,7 +63,7 @@ PRICE_OUTPUT_PER_1M       = 0.60    # output (4x input -- long answers dominate)
 
 # --- Business projection knobs (set these to YOUR reality) ---
 QUERIES_PER_DAY = 2000              # expected doubt-solver traffic
-USD_TO_INR      = 88.0              # approximate; set to the current rate
+USD_TO_INR      = 96.0              # approximate; set to the current rate
 
 # --- Budget (the "SLO" for cost): the offline pass/fail line ---
 COST_BUDGET_PER_QUERY_USD = 0.0015  # e.g. must stay under ~0.13 INR / query
