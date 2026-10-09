@@ -1,9 +1,13 @@
-# eval_retriever.py
+# regression_test/eval_retriever.py
+import os
+
 from dotenv import load_dotenv
 
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import ContextualRecallMetric, ContextualPrecisionMetric
+from deepeval.models.llms.openai_model import OpenAIModel
+from deepeval.evaluate.configs import CacheConfig, ErrorConfig
 
 from src.reranker import RerankingRetriever
 from regression_test.harness import load_goldens, summarize_by_metric, print_summary
@@ -11,7 +15,21 @@ from regression_test.harness import load_goldens, summarize_by_metric, print_sum
 load_dotenv()
 
 GOLDEN_PATH = "goldens/retriever_goldens.json"
-JUDGE_MODEL = "gpt-4o-mini"   # NOTE: differs from the other evals (gpt-4o-mini)
+JUDGE_MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"
+JUDGE_MODEL = OpenAIModel(
+    model=JUDGE_MODEL_NAME,
+    api_key=os.getenv("API_KEY"),
+    base_url="https://openrouter.ai/api/v1",
+    temperature=0,
+    generation_kwargs={
+        "extra_body": {"reasoning": {"enabled": False}},
+    },
+)
+# OpenRouter custom model not in deepeval's OPENAI_MODELS_DATA -> force JSON mode
+# otherwise deepeval does plain generation and brittle trimAndLoadJson fails on reasoning traces
+JUDGE_MODEL.model_data.supports_json = True
+JUDGE_MODEL.model_data.supports_structured_outputs = False
+
 THRESHOLD = 0.7
 
 
@@ -43,16 +61,20 @@ def run(retriever):
 
     # 4. EVALUATE --- every metric on every case, batched + parallel, printed report.
     #    hyperparameters travel with the run so the report is tagged with the config.
+    # cache disabled = fix for Windows portalocker bug (AttributeError: test_cases_lookup_map)
+    # error_config = one bad JSON verdict doesn't crash entire 15-case run
     result = evaluate(
         test_cases=test_cases,
         metrics=metrics,
+        cache_config=CacheConfig(write_cache=False, use_cache=False),
+        error_config=ErrorConfig(ignore_errors=True),
         hyperparameters={
             "retriever": "reranker",          # vs "reranked" when you swap it in
             "embedding_model": "text-embedding-3-large",
             "chunk_size": 1000,
             "chunk_overlap": 150,
             "top_k": 3,
-            "judge_model": JUDGE_MODEL,
+            "judge_model": JUDGE_MODEL_NAME,
             "golden_set": GOLDEN_PATH,
         },
     )
