@@ -1,8 +1,12 @@
-# eval_rag_pipeline.py
+# regression_test/eval_rag_pipeline.py
+import os
+
 from dotenv import load_dotenv
 
 from deepeval import evaluate
 from deepeval.test_case import LLMTestCase
+from deepeval.models.llms.openai_model import OpenAIModel
+from deepeval.evaluate.configs import CacheConfig, ErrorConfig
 from deepeval.metrics import (
     FaithfulnessMetric,
     AnswerRelevancyMetric,
@@ -15,7 +19,21 @@ from regression_test.harness import load_goldens, summarize_by_metric, print_sum
 load_dotenv()
 
 GOLDEN_PATH = "goldens/faithfulness_dataset.json"   # reuse the queries
-JUDGE_MODEL = "gpt-4o-mini"
+JUDGE_MODEL_NAME = "nvidia/nemotron-3.5-lightning:free"    # nvidia/nemotron-3-super-120b-a12b:free
+JUDGE_MODEL = OpenAIModel(
+    model=JUDGE_MODEL_NAME,
+    api_key=os.getenv("API_KEY"),
+    base_url="https://openrouter.ai/api/v1",
+    temperature=0,
+    generation_kwargs={
+        "extra_body": {"reasoning": {"enabled": False}},
+    },
+)
+# OpenRouter custom model not in deepeval's OPENAI_MODELS_DATA -> force JSON mode
+# otherwise deepeval does plain generation and brittle trimAndLoadJson fails on reasoning traces
+JUDGE_MODEL.model_data.supports_json = True
+JUDGE_MODEL.model_data.supports_structured_outputs = False
+
 THRESHOLD = 0.7
 
 
@@ -44,7 +62,23 @@ def run(rag):
     ]
 
     # 4. EVALUATE
-    result = evaluate(test_cases=test_cases, metrics=metrics)
+    # cache disabled = fix for Windows portalocker bug (AttributeError: test_cases_lookup_map)
+    # error_config = one bad JSON verdict doesn't crash entire run
+    result = evaluate(
+        test_cases=test_cases,
+        metrics=metrics,
+        cache_config=CacheConfig(write_cache=False, use_cache=False),
+        error_config=ErrorConfig(ignore_errors=True),
+        hyperparameters={
+            "retriever": "reranker",
+            "embedding_model": "text-embedding-3-large",
+            "chunk_size": 1000,
+            "chunk_overlap": 150,
+            "top_k": 3,
+            "judge_model": JUDGE_MODEL_NAME,
+            "golden_set": GOLDEN_PATH,
+        },
+    )
     return summarize_by_metric(result)
 
 
