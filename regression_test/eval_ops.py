@@ -16,10 +16,11 @@ Per-eval notes, preserved:
 
   LATENCY   -- non-deterministic, so we take a distribution and report
                percentiles (p95/p99 tail, not the misleading mean) against an
-               SLO -- not against a ground truth. We measure end-to-end AND
-               time-to-first-token (perceived, what a streaming UI feels like),
+               SLO -- not against a ground truth. We measure end-to-end,
                decompose retrieval vs generation, discard warmup runs (cold
                start), and stay single-user (load testing is a separate job).
+               TTFT is supported but currently OFF: the free model stalls
+               mid-stream, so stage-level (non-streaming) is what we trust.
 
   COST      -- derived, not measured: cost = tokens x price. Near-deterministic
                (temp=0 -> stable token counts), so it is an honest OFFLINE
@@ -94,7 +95,7 @@ def col_avg(rows, key):
 # --- 4. LATENCY: CONFIG ---
 LAT_REPEATS = 5           # measured runs per question -> samples = len(QUESTIONS)*LAT_REPEATS
 LAT_WARMUP_RUNS = 2       # throwaway calls before measuring (cold start)
-LAT_MEASURE_TTFT = True   # stream generation and clock time-to-first-token
+LAT_MEASURE_TTFT = False  # TTFT needs streaming; the free model stalls mid-stream, so measure stages instead
 LAT_STAGE_LEVEL = True    # split retrieval vs generation (implied when TTFT is on)
 
 SLO_P95_MS = 3000         # end-to-end: full answer p95 under 3s
@@ -281,7 +282,7 @@ PRICE_OUTPUT_PER_1M       = 0.60    # output (4x input -- long answers dominate)
 
 # Business projection knobs (set these to YOUR reality).
 QUERIES_PER_DAY = 2000              # expected doubt-solver traffic
-USD_TO_INR      = 88.0              # approximate; set to the current rate
+USD_TO_INR      = 96.0              # approximate; set to the current rate
 
 # Budget (the "SLO" for cost): the offline pass/fail line.
 COST_BUDGET_PER_QUERY_USD = 0.0015  # e.g. must stay under ~0.13 INR / query
@@ -337,7 +338,6 @@ def cost_report(rows):
     min_cost   = min(r["cost_total"] for r in rows)
     max_cost   = max(r["cost_total"] for r in rows)
 
-    avg_cost_in  = col_avg(rows, "cost_input") + col_avg(rows, "cost_cached")
     avg_cost_out = col_avg(rows, "cost_output")
     out_share = 100 * avg_cost_out / avg_cost if avg_cost else 0
 
